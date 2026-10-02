@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Stratégique - RDC 2035</title>
+    <!-- Chargement des librairies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .tab-content.active { display: block; opacity: 1; }
+        .nav-link { position: relative; transition: all 0.2s ease; }
+        .nav-link::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 0%; height: 3px; background-color: #2563eb; transition: width 0.3s ease; }
+        .nav-link.active::after { width: 100%; }
+        .nav-link.active { color: #1e3a8a; font-weight: 600; }
+        .tooltip { position: relative; display: inline-block; cursor: help; border-bottom: 1px dashed #64748b; }
+        .tooltip:hover::after { 
+            content: attr(data-tooltip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); 
+            background: #1e293b; color: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: normal;
+            white-space: nowrap; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+        }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .custom-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #e2e8f0; outline: none; transition: .2s; }
+        .custom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #2563eb; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .custom-slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #2563eb; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+<!-- En-tête Exécutif -->
+<header class="bg-gradient-to-r from-slate-900 to-blue-900 text-white shadow-xl sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-600/30 p-3 rounded-lg border border-blue-400/30">
+                <i class="fa-solid fa-earth-africa text-2xl text-blue-200"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">RDC 2035 : Stratégie d'Industrialisation des Minerais Critiques</h1>
+                <p class="text-sm text-blue-200 mt-1 font-medium">Tableau de Bord Interministériel — Modélisation & Aide à la décision</p>
+            </div>
+        </div>
+        <div class="flex flex-col items-end">
+            <span class="bg-red-500/20 text-red-200 border border-red-500/30 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-2"><i class="fa-solid fa-lock mr-1"></i> Confidentiel Gouvernement</span>
+            <span class="text-xs text-slate-300"><i class="fa-solid fa-clock mr-1"></i> Dernière mise à jour : 2026-10</span>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto mt-8 mb-20">
+    
+    <!-- KPI Rapides (Toujours visibles) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 px-6 mb-8">
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center gap-4 border-l-4 border-blue-500">
+            <div class="bg-blue-100 p-3 rounded-full text-blue-600"><i class="fa-solid fa-gem text-xl"></i></div>
+            <div>
+                <p class="text-xs text-slate-500 font-bold uppercase">Production Cobalt (2024)</p>
+                <p class="text-xl font-bold text-slate-800">226 000 t <span class="text-xs text-emerald-500 ml-1">(73% Monde)</span>[cite: 1]</p>
+            </div>
+        </div>
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center gap-4 border-l-4 border-emerald-500">
+            <div class="bg-emerald-100 p-3 rounded-full text-emerald-600"><i class="fa-solid fa-sack-dollar text-xl"></i></div>
+            <div>
+                <p class="text-xs text-slate-500 font-bold uppercase">Recettes Extractives</p>
+                <p class="text-xl font-bold text-slate-800">6,45 Md$ <span class="text-xs text-emerald-500 ml-1">(15,1% PIB)</span>[cite: 1]</p>
+            </div>
+        </div>
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center gap-4 border-l-4 border-orange-500">
+            <div class="bg-orange-100 p-3 rounded-full text-orange-600"><i class="fa-solid fa-bolt text-xl"></i></div>
+            <div>
+                <p class="text-xs text-slate-500 font-bold uppercase">Déficit Énergétique (Katanga)</p>
+                <p class="text-xl font-bold text-slate-800">1 500 MW <span class="text-xs text-red-500 ml-1">(Bloquant)</span>[cite: 7]</p>
+            </div>
+        </div>
+        <div class="glass-panel p-4 rounded-xl shadow-sm flex items-center gap-4 border-l-4 border-indigo-500">
+            <div class="bg-indigo-100 p-3 rounded-full text-indigo-600"><i class="fa-solid fa-industry text-xl"></i></div>
+            <div>
+                <p class="text-xs text-slate-500 font-bold uppercase">Avantage pCAM (CAPEX)</p>
+                <p class="text-xl font-bold text-slate-800">39 M$ <span class="text-xs text-emerald-500 ml-1">(vs Chine 112M$)</span>[cite: 6, 7]</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex border-b border-slate-300 px-6 mb-8 gap-8" id="tabs">
+        <button onclick="switchTab('hist')" class="nav-link active pb-3 text-slate-500 hover:text-blue-700 font-medium text-lg focus:outline-none" id="tab-hist"><i class="fa-solid fa-timeline mr-2"></i>Historique & Conjoncture</button>
+        <button onclick="switchTab('val')" class="nav-link pb-3 text-slate-500 hover:text-blue-700 font-medium text-lg focus:outline-none" id="tab-val"><i class="fa-solid fa-link mr-2"></i>Chaîne de Valeur & Géoéconomie</button>
+        <button onclick="switchTab('sim')" class="nav-link pb-3 text-slate-500 hover:text-blue-700 font-medium text-lg focus:outline-none" id="tab-sim"><i class="fa-solid fa-sliders mr-2"></i>Simulateur de Politiques</button>
+        <button onclick="switchTab('src')" class="nav-link pb-3 text-slate-500 hover:text-blue-700 font-medium text-lg focus:outline-none" id="tab-src"><i class="fa-solid fa-book-bookmark mr-2"></i>Directives & Sources</button>
+    </nav>
+
+    <!-- ONGLET 1: HISTORIQUE -->
+    <div id="hist" class="tab-content active px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Frise chronologique interactive -->
+            <div class="col-span-1 lg:col-span-5 glass-panel p-6 rounded-2xl shadow-sm">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center"><i class="fa-solid fa-landmark text-blue-600 mr-3"></i> Chronologie de l'Action Souveraine</h2>
+                <div class="space-y-4">
+                    
+                    <!-- Item 1 -->
+                    <details class="group bg-slate-50 rounded-lg border border-slate-200 overflow-hidden" open>
+                        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none p-4 hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">18</span>
+                                <span class="text-slate-800">Révision du Code Minier</span>
+                            </div>
+                            <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-slate-400"></i></span>
+                        </summary>
+                        <div class="p-4 pt-0 text-sm text-slate-600 bg-slate-50 border-t border-slate-100">
+                            <p class="mb-2"><strong>Objectif :</strong> Capter une part équitable de la rente. Requalification du cobalt en "substance stratégique" faisant passer la redevance de 2% à 10%[cite: 4].</p>
+                            <p class="mb-2"><strong>Outils :</strong> Instauration d'une taxe spéciale de 50% sur les "super-profits" en cas d'explosion des cours[cite: 4]. Création du Fonds Minier pour les Générations Futures (FOMIN) alimenté par 10% de la redevance[cite: 4].</p>
+                            <div class="flex items-start gap-2 mt-3 p-2 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100">
+                                <i class="fa-solid fa-circle-check mt-0.5"></i>
+                                <p><strong>Résultat :</strong> Hausse spectaculaire des recettes extractives (6,45 Md$ en 2024)[cite: 1]. <em>Limite : Opacité de la gestion du FOMIN (857 M$ encaissés sans impact structurel visible)[cite: 4].</em></p>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Item 2 -->
+                    <details class="group bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none p-4 hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold">25</span>
+                                <span class="text-slate-800">Quotas d'Exportation (2025-2027)</span>
+                            </div>
+                            <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-slate-400"></i></span>
+                        </summary>
+                        <div class="p-4 pt-0 text-sm text-slate-600 bg-slate-50 border-t border-slate-100">
+                            <p class="mb-2"><strong>Objectif :</strong> Assécher l'offre mondiale pour forcer la remontée des prix suite au krach de 2022-2024[cite: 5].</p>
+                            <p class="mb-2"><strong>Outils :</strong> Plafonnement des exportations à 96 600 tonnes par an, dont 9 600 tonnes gérées par l'ARECOMS au titre des réserves stratégiques[cite: 5].</p>
+                            <div class="flex items-start gap-2 mt-3 p-2 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
+                                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                                <p><strong>Résultat ambigu :</strong> Rebond des prix, mais adaptation défensive des miniers (ex: Glencore a réduit sa production de 5% pour se concentrer sur le cuivre)[cite: 5]. Risque d'accélération vers les chimies sans cobalt[cite: 5].</p>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Item 3 -->
+                    <details class="group bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                        <summary class="flex justify-between items-center font-semibold cursor-pointer list-none p-4 hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-900 text-white text-sm font-bold">26</span>
+                                <span class="text-slate-800">Interdiction d'Exportation de l'Amont</span>
+                            </div>
+                            <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-slate-400"></i></span>
+                        </summary>
+                        <div class="p-4 pt-0 text-sm text-slate-600 bg-slate-50 border-t border-slate-100">
+                            <p class="mb-2"><strong>Objectif :</strong> Forcer la transformation industrielle locale par coercition directe en août 2026[cite: 5].</p>
+                            <p class="mb-2"><strong>Outils :</strong> Interdiction totale d'exporter des concentrés de cuivre et de cobalt non transformés[cite: 5].</p>
+                            <div class="flex items-start gap-2 mt-3 p-2 bg-red-50 text-red-700 rounded-md border border-red-100">
+                                <i class="fa-solid fa-skull-crossbones mt-0.5"></i>
+                                <p><strong>Vulnérabilité :</strong> Catalyse certains projets (fonderie de Kamoa-Kakula de 500 000 t)[cite: 5], mais pose un risque de paralysie totale du secteur à cause du goulet d'étranglement énergétique[cite: 5].</p>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Graphiques Macroéconomiques -->
+            <div class="col-span-1 lg:col-span-7 flex flex-col gap-6">
+                <!-- Prix vs Prod -->
+                <div class="glass-panel p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-chart-line text-blue-600 mr-2"></i> Dynamique des Prix et de l'Offre Cobalt</h2>
+                        <span class="text-xs font-semibold bg-slate-100 text-slate-500 px-2 py-1 rounded">Données Mondiales / RDC</span>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100 text-sm text-slate-700 leading-relaxed">
+                        <strong>Clé d'analyse :</strong> Le krach tarifaire historique (chute de 74%, passant de ~82 000 USD à 21 550 USD la tonne[cite: 3]) n'est pas lié à une baisse de la demande absolue, mais à un <span class="tooltip text-blue-700 font-semibold" data-tooltip="Inondation du marché visant à écraser la concurrence">choc d'offre orchestré par le groupe chinois CMOC</span> qui a produit 114 165 tonnes à lui seul en 2024[cite: 3].
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONGLET 2: CHAINE DE VALEUR -->
+    <div id="val" class="tab-content px-6">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-blue-600 pl-4">Diagnostic de la Compétitivité et Basculement Géoéconomique</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Matrice Avantage Comparatif -->
+            <div class="glass-panel p-6 rounded-2xl shadow-sm flex flex-col">
+                <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center"><i class="fa-solid fa-scale-balanced text-indigo-500 mr-2"></i> Modélisation de l'Usine pCAM (10 000 tonnes)</h3>
+                <p class="text-sm text-slate-500 mb-5">Étude indépendante mandatée par la Commission Économique pour l'Afrique (CEA) et BloombergNEF démontrant l'hyper-compétitivité congolaise sur les précurseurs de cathodes (pCAM)[cite: 6].</p>
+                
+                <div class="overflow-x-auto rounded-xl border border-slate-200 flex-grow">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-800 text-white">
+                            <tr>
+                                <th class="px-4 py-4 font-semibold uppercase tracking-wider text-xs w-1/3">Variables d'Arbitrage</th>
+                                <th class="px-4 py-4 font-bold text-emerald-300 w-1/4">🇨🇩 RDC</th>
+                                <th class="px-4 py-4 font-medium text-slate-300 w-1/4">🇨🇳 Chine</th>
+                                <th class="px-4 py-4 font-medium text-slate-300">🇵🇱 Pologne</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-slate-700">Coût d'Investissement (CAPEX)</td>
+                                <td class="px-4 py-4 font-bold text-emerald-600 bg-emerald-50/30 text-lg">39 M$ <i class="fa-solid fa-check text-sm"></i>[cite: 6, 7]</td>
+                                <td class="px-4 py-4 text-red-500">112 M$ (+187%)[cite: 6, 7]</td>
+                                <td class="px-4 py-4 text-orange-500">65 M$ (+66%)[cite: 6, 7]</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-slate-700">Délai Logistique & BFR</td>
+                                <td class="px-4 py-4 text-emerald-600 bg-emerald-50/30">Immédiat (Sur site minier)[cite: 7]</td>
+                                <td class="px-4 py-4 text-red-500">3 à 4 mois de transit[cite: 3, 7]</td>
+                                <td class="px-4 py-4 text-red-500">3 à 4 mois de transit</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-slate-700">Empreinte Carbone (Normes ESG)</td>
+                                <td class="px-4 py-4 text-emerald-600 bg-emerald-50/30 font-medium text-xs"><span class="bg-emerald-100 px-2 py-1 rounded-full text-emerald-700">Très Faible (Hydro 97%)</span>[cite: 7]</td>
+                                <td class="px-4 py-4 text-red-500 text-xs"><span class="bg-red-50 text-red-700 px-2 py-1 rounded-full">Forte (Charbon)</span>[cite: 7]</td>
+                                <td class="px-4 py-4 text-orange-500 text-xs"><span class="bg-orange-50 text-orange-700 px-2 py-1 rounded-full">Moyenne</span>[cite: 7]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <!-- Corridor de Lobito -->
+                <div class="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-white h-64 flex flex-col justify-end">
+                    <!-- Fake Map Background -->
+                    <div class="absolute inset-0 bg-slate-100 overflow-hidden">
+                        <div class="absolute w-full h-full opacity-20" style="background-image: radial-gradient(#2563eb 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <!-- Lobito Line Graphic -->
+                        <svg class="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M 80 50 Q 50 30 20 60" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="4 4" class="animate-[dash_10s_linear_infinite]" />
+                            <circle cx="80" cy="50" r="3" fill="#ef4444" /> <!-- Lualaba -->
+                            <circle cx="20" cy="60" r="3" fill="#10b981" /> <!-- Lobito -->
+                            <text x="82" y="47" font-size="4" fill="#334155" font-weight="bold">Katanga</text>
+                            <text x="18" y="57" font-size="4" fill="#334155" font-weight="bold">Océan Atlantique (Lobito)</text>
+                        </svg>
+                        <style>@keyframes dash { to { stroke-dashoffset: -100; } }</style>
+                    </div>
+                    
+                    <div class="relative z-10 bg-white/90 backdrop-blur-md p-5 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-slate-800"><i class="fa-solid fa-train-tram text-blue-600 mr-2"></i>Désenclavement : Corridor de Lobito</h3>
+                            <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide">Révolution Logistique</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-3">Fin du transit de 25 jours vers l'Océan Indien (Durban/Dar es Salaam)[cite: 8]. Soutenu par la US DFC (jusqu'à 1 Md$)[cite: 8].</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-emerald-50 rounded p-2 text-center border border-emerald-100">
+                                <div class="text-xl font-bold text-emerald-600">-30%</div>
+                                <div class="text-[10px] text-slate-500 font-semibold uppercase">Coûts Logistiques[cite: 8]</div>
+                            </div>
+                            <div class="bg-emerald-50 rounded p-2 text-center border border-emerald-100">
+                                <div class="text-xl font-bold text-emerald-600">5 à 8 jrs</div>
+                                <div class="text-[10px] text-slate-500 font-semibold uppercase">Temps de transit maritime[cite: 8]</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menaces Structurelles -->
+                <div class="grid grid-cols-2 gap-4 flex-grow">
+                    <div class="glass-panel p-4 rounded-xl shadow-sm border-t-4 border-t-red-500">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2"><i class="fa-solid fa-car-battery text-red-500 mr-1"></i> Menace de Substitution</h4>
+                        <p class="text-xs text-slate-600">La chimie <span class="font-bold">LFP (Lithium-Fer-Phosphate)</span>, sans cobalt, couvre désormais près de la moitié du marché mondial des véhicules électriques, menaçant la demande absolue à long terme[cite: 3].</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl shadow-sm border-t-4 border-t-amber-500">
+                        <h4 class="font-bold text-slate-800 text-sm mb-2"><i class="fa-solid fa-hands-holding-child text-amber-500 mr-1"></i> Assainissement ESG</h4>
+                        <p class="text-xs text-slate-600">L'Entreprise Générale du Cobalt (EGC) vise à formaliser les creuseurs artisanaux (Zones d'Exploitation Artisanale) pour certifier un "Gold Standard" éthique, indispensable pour les marchés occidentaux[cite: 8, 9].</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONGLET 3: SIMULATEUR -->
+    <div id="sim" class="tab-content px-6">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2 border-l-4 border-blue-600 pl-4">Simulateur d'Ingénierie Politique (Horizon 2035)</h2>
+            <p class="text-slate-600 pl-5 max-w-4xl">Ajustez les trois curseurs régaliens ci-dessous (Fiscalité douanière, Allocation du FOMIN, et Ouverture diplomatique) pour modéliser les impacts sur les équilibres macroéconomiques et déterminer la trajectoire industrielle optimale de la RDC.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <!-- Console de Commandes -->
+            <div class="col-span-1 lg:col-span-5 glass-panel p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center uppercase tracking-wide text-sm"><i class="fa-solid fa-sliders text-blue-600 mr-2"></i> Leviers d'Intervention de l'État</h3>
+                    
+                    <!-- Slider 1 -->
+                    <div class="mb-8">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <label class="font-semibold text-slate-700 text-sm block">Taxation Douanière sur l'Amont</label>
+                                <span class="text-[10px] text-slate-400">Taux applicable aux concentrés et hydroxyde brut.</span>
+                            </div>
+                            <span id="valTax" class="font-bold text-blue-600 text-xl bg-blue-50 px-2 py-1 rounded">25%</span>
+                        </div>
+                        <input type="range" id="sliderTax" min="0" max="50" value="25" class="custom-slider">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wider"><span>0% (Laissez-faire)</span><span>50% (Coercition totale)</span></div>
+                    </div>
+
+                    <!-- Slider 2 -->
+                    <div class="mb-8">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <label class="font-semibold text-slate-700 text-sm block">Allocation du FOMIN à l'Énergie</label>
+                                <span class="text-[10px] text-slate-400">Part de la rente réinvestie en infrastructures (SNEL).</span>
+                            </div>
+                            <span id="valFomin" class="font-bold text-orange-600 text-xl bg-orange-50 px-2 py-1 rounded">50%</span>
+                        </div>
+                        <input type="range" id="sliderFomin" min="0" max="100" value="50" class="custom-slider !bg-slate-200 [&::-webkit-slider-thumb]:bg-orange-500">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wider"><span>0% (Épargne morte)</span><span>100% (Investissement massif)</span></div>
+                    </div>
+
+                    <!-- Slider 3 -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <label class="font-semibold text-slate-700 text-sm block">Intégration ZES & "De-Risking"</label>
+                                <span class="text-[10px] text-slate-400">Degré de coopération avec la Zambie, Mercuria et US DFC.</span>
+                            </div>
+                            <span id="valDiplo" class="font-bold text-emerald-600 text-xl bg-emerald-50 px-2 py-1 rounded">Moyen</span>
+                        </div>
+                        <input type="range" id="sliderDiplo" min="0" max="100" value="50" class="custom-slider !bg-slate-200 [&::-webkit-slider-thumb]:bg-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wider"><span>Autarcie</span><span>Intégration totale</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Écran de Résultat Modélisé -->
+            <div class="col-span-1 lg:col-span-7">
+                <div id="simOutput" class="h-full rounded-2xl p-8 border-2 transition-all duration-500 relative overflow-hidden bg-slate-100 border-slate-300">
+                    <!-- Decorative background element -->
+                    <i id="simIcon" class="fa-solid fa-gears absolute -bottom-10 -right-10 text-9xl opacity-5 transition-all duration-500 text-slate-900"></i>
+                    
+                    <div class="relative z-10 h-full flex flex-col">
+                        <div class="mb-auto">
+                            <span id="simBadge" class="inline-block px-3 py-1 text-[11px] font-bold rounded-full mb-4 uppercase tracking-widest bg-slate-200 text-slate-600">Initialisation...</span>
+                            <h3 id="simTitle" class="text-2xl font-bold text-slate-800 mb-3 transition-colors duration-300">Ajustez les curseurs pour modéliser un scénario</h3>
+                            <p id="simDesc" class="text-slate-600 text-sm leading-relaxed mb-8">Le modèle évalue l'interaction entre la politique commerciale, le climat des affaires, et la capacité infrastructurelle. Les résultats sont présentés comme des scénarios probables basés sur les données historiques et l'analyse de sensibilité[cite: 11].</p>
+                        </div>
+                        
+                        <!-- KPIs Dynamiques -->
+                        <div class="grid grid-cols-2 gap-4 mt-6">
+                            <div class="bg-white/80 backdrop-blur rounded-lg p-4 shadow-sm border border-slate-200/50">
+                                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Recettes Fiscales (2035)</h4>
+                                <p id="kpiRev" class="font-semibold text-slate-800 text-sm">-</p>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur rounded-lg p-4 shadow-sm border border-slate-200/50">
+                                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Infrastructures (Énergie)</h4>
+                                <p id="kpiInfra" class="font-semibold text-slate-800 text-sm">-</p>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur rounded-lg p-4 shadow-sm border border-slate-200/50">
+                                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Attractivité IDE & Marchés</h4>
+                                <p id="kpiIde" class="font-semibold text-slate-800 text-sm">-</p>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur rounded-lg p-4 shadow-sm border border-slate-200/50">
+                                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Position dans la chaîne</h4>
+                                <p id="kpiValue" class="font-semibold text-slate-800 text-sm">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONGLET 4: DIRECTIVES & SOURCES -->
+    <div id="src" class="tab-content px-6">
+        
+        <!-- Recommandations Officielles -->
+        <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-blue-600 pl-4">3 Recommandations de Politiques Publiques</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Reco 1 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-sm border-t-4 border-t-indigo-500 relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fa-solid fa-file-invoice-dollar text-8xl text-indigo-900"></i></div>
+                <h3 class="font-bold text-slate-800 text-lg mb-3">1. Architecture Fiscale Incitative</h3>
+                <p class="text-sm text-slate-600 mb-4">Abandonner les interdictions binaires brutes au profit de taxes douanières progressives basées sur la valeur ajoutée[cite: 12].</p>
+                <ul class="text-xs text-slate-500 space-y-2 border-l-2 border-indigo-200 pl-3">
+                    <li><strong class="text-slate-700">Mesure :</strong> Taxe élevée (15%) sur les concentrés et l'hydroxyde de cobalt[cite: 12].</li>
+                    <li><strong class="text-slate-700">Mesure :</strong> Exonération totale (0%) pour l'exportation de précurseurs (pCAM)[cite: 12].</li>
+                    <li><strong class="text-slate-700">Bénéfice :</strong> Signal-prix naturel attirant les raffineries sans paralyser les flux de trésorerie immédiats[cite: 12].</li>
+                </ul>
+            </div>
+            <!-- Reco 2 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-sm border-t-4 border-t-amber-500 relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fa-solid fa-bolt text-8xl text-amber-900"></i></div>
+                <h3 class="font-bold text-slate-800 text-lg mb-3">2. Redéploiement Énergétique</h3>
+                <p class="text-sm text-slate-600 mb-4">L'industrialisation (chimie fine, pyrométallurgie) est physiquement impossible sans résoudre le déficit de 1500 MW au Katanga[cite: 12].</p>
+                <ul class="text-xs text-slate-500 space-y-2 border-l-2 border-amber-200 pl-3">
+                    <li><strong class="text-slate-700">Mesure :</strong> Légiférer pour obliger l'allocation de 70% de l'encours du FOMIN (épargne de 850 M$) aux infrastructures énergétiques[cite: 4, 12].</li>
+                    <li><strong class="text-slate-700">Acteurs :</strong> Structuration de Partenariats Public-Privé (PPP) impliquant la SNEL et la Banque Mondiale[cite: 12].</li>
+                </ul>
+            </div>
+            <!-- Reco 3 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-sm border-t-4 border-t-emerald-500 relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fa-solid fa-globe text-8xl text-emerald-900"></i></div>
+                <h3 class="font-bold text-slate-800 text-lg mb-3">3. Diplomatie du "De-Risking"</h3>
+                <p class="text-sm text-slate-600 mb-4">Casser le quasi-monopole asiatique en offrant une alternative éthique et décarbonée aux constructeurs occidentaux[cite: 9, 13].</p>
+                <ul class="text-xs text-slate-500 space-y-2 border-l-2 border-emerald-200 pl-3">
+                    <li><strong class="text-slate-700">Mesure :</strong> Opérationnalisation accélérée de la Zone Économique Spéciale transfrontalière (ZES) avec la Zambie (Kin-Malebo)[cite: 10, 12].</li>
+                    <li><strong class="text-slate-700">Mesure :</strong> Consolider le "trading desk" conjoint Gécamines-Mercuria, adossé aux garanties de l'agence américaine DFC pour certifier l'accès au marché occidental[cite: 9, 10, 12].</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bibliographie rigoureuse -->
+        <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-blue-600 pl-4">Bibliographie et Traçabilité des Données</h2>
+        <div class="glass-panel p-6 rounded-2xl shadow-sm">
+            <p class="text-sm text-slate-500 mb-6 italic border-b border-slate-200 pb-4">Conformément aux exigences de rigueur, chaque affirmation de ce tableau de bord s'appuie exclusivement sur les documents fournis ("Stratégie Industrielle Minière RDC.pdf" et "Projets danalyse strateìgique.pdf")[cite: 24, 25].</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">US Geological Survey (USGS), 2026</strong>
+                        <span class="text-slate-500 text-xs">Mineral Commodity Summaries: Cobalt.</span><br>
+                        <a href="https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-cobalt.pdf" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>Production extractives et hégémonie de 73% de la RDC.</em></p>
+                    </div>
+                </div>
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">BloombergNEF & CEA</strong>
+                        <span class="text-slate-500 text-xs">Producing Battery Materials in the DRC Could Lower Supply-Chain Emissions.</span><br>
+                        <a href="https://about.bnef.com/insights/clean-energy/producing-battery-materials-in-the-drc-could-lower-supply-chain-emissions-and-add-value-to-the-countrys-cobalt/" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>CAPEX de 39 M$ pour l'usine pCAM et avantage ESG hydroélectrique.</em></p>
+                    </div>
+                </div>
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">Cobalt Institute, 2024 & 2025</strong>
+                        <span class="text-slate-500 text-xs">Cobalt Market Reports.</span><br>
+                        <a href="https://www.cobaltinstitute.org/wp-content/uploads/2026/05/Cobalt-Market-Report-2025.pdf" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>Krach tarifaire de 74%, surproduction CMOC, percée de la technologie LFP.</em></p>
+                    </div>
+                </div>
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">Glencore, 2025</strong>
+                        <span class="text-slate-500 text-xs">Full Year 2025 Production Report.</span><br>
+                        <a href="https://www.glencore.com/media-and-insights/news/full-year-2025-production-report" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>Baisse volontaire de la production de 5% face aux quotas d'exportation.</em></p>
+                    </div>
+                </div>
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">Afreximbank & CEA</strong>
+                        <span class="text-slate-500 text-xs">Framework Agreement towards establishing SEZs for EV production.</span><br>
+                        <a href="https://www.afreximbank.com/afreximbank-and-eca-sign-framework-agreement-towards-establishing-special-economic-zones-for-the-production-of-battery-electric-vehicles-in-drc-and-zambia%EF%BF%BC/" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>Cadre de la ZES RDC-Zambie (Kin-Malebo).</em></p>
+                    </div>
+                </div>
+                <div class="text-sm flex gap-3">
+                    <div class="mt-1 text-slate-300"><i class="fa-solid fa-bookmark"></i></div>
+                    <div>
+                        <strong class="text-slate-700 block">Mercuria Energy Trading</strong>
+                        <span class="text-slate-500 text-xs">Gécamines and Mercuria Launch Copper-Cobalt Joint Venture.</span><br>
+                        <a href="https://mercuria.com/gecamines-and-mercuria-launch-copper-cobalt-joint-venture-in-drc-with-backing-from-u-s-international-development-finance-corporation-dfc/" target="_blank" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Lien direct</a>
+                        <p class="text-xs text-slate-400 mt-1">Soutient : <em>Création du bureau de trading soutenu par l'agence américaine DFC pour le "de-risking".</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Scripts d'interactivité -->
+<script>
+    /* LOGIQUE DE NAVIGATION DES ONGLETS */
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => { el.classList.remove('active'); el.style.opacity = '0'; });
+        document.querySelectorAll('.nav-link').forEach(el => { el.classList.remove('active', 'text-blue-700'); });
+        
+        const activeTab = document.getElementById(tabId);
+        activeTab.classList.add('active');
+        setTimeout(() => { activeTab.style.opacity = '1'; }, 50); // Fade in effect
+        
+        document.getElementById('tab-' + tabId).classList.add('active', 'text-blue-700');
+    }
+
+    /* GRAPHIQUE CHART.JS (ONGLET 1) */
+    const ctxPrice = document.getElementById('priceChart').getContext('2d');
+    new Chart(ctxPrice, {
+        type: 'line',
+        data: {
+            labels: ['2022 (Pic)', '2023', '2024 (Choc Offre)', '2025 (Quotas)', '2026 (Rebond)'],
+            datasets: [
+                { 
+                    label: 'Prix Cobalt ($/tonne)', 
+                    data: [82000, 45000, 21550, 30000, 50000], 
+                    borderColor: '#2563eb', 
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    yAxisID: 'y',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#2563eb',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                },
+                { 
+                    label: 'Production RDC (milliers de tonnes)', 
+                    data: [130, 170, 226, 215, 200], 
+                    type: 'bar', 
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)', 
+                    borderRadius: 4,
+                    yAxisID: 'y1',
+                    barThickness: 30
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, font: { family: 'Inter', size: 12 } } },
+                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { family: 'Inter' }, bodyFont: { family: 'Inter' }, padding: 12, cornerRadius: 8 }
+            },
+            scales: {
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Prix en USD', font: { weight: 'bold' } }, grid: { borderDash: [4, 4] } },
+                y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Production (kt)', font: { weight: 'bold' } } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    /* LOGIQUE DU SIMULATEUR STRATÉGIQUE (ONGLET 3) */
+    const sTax = document.getElementById('sliderTax');
+    const sFomin = document.getElementById('sliderFomin');
+    const sDiplo = document.getElementById('sliderDiplo');
+    const vTax = document.getElementById('valTax');
+    const vFomin = document.getElementById('valFomin');
+    const vDiplo = document.getElementById('valDiplo');
+    
+    // UI Elements
+    const outPanel = document.getElementById('simOutput');
+    const simBadge = document.getElementById('simBadge');
+    const simTitle = document.getElementById('simTitle');
+    const simDesc = document.getElementById('simDesc');
+    const simIcon = document.getElementById('simIcon');
+    const kpiRev = document.getElementById('kpiRev');
+    const kpiInfra = document.getElementById('kpiInfra');
+    const kpiIde = document.getElementById('kpiIde');
+    const kpiValue = document.getElementById('kpiValue');
+
+    function updateSimulation() {
+        const tax = parseInt(sTax.value);
+        const fomin = parseInt(sFomin.value);
+        const diplo = parseInt(sDiplo.value);
+        
+        // Update labels
+        vTax.innerText = tax + '%';
+        vFomin.innerText = fomin + '%';
+        
+        let diploText = "Moyen";
+        if (diplo < 30) diploText = "Isolement";
+        if (diplo > 70) diploText = "Alliance Occident";
+        vDiplo.innerText = diploText;
+
+        // Modèle logique basé sur les scénarios du rapport
+        if (tax >= 35 && fomin < 40) {
+            // SCÉNARIO A : NATIONALISME COERCITIF (Risque élevé) - Cite: 11
+            outPanel.className = "h-full rounded-2xl p-8 border-2 transition-all duration-500 relative overflow-hidden bg-red-50 border-red-300";
+            simBadge.className = "inline-block px-3 py-1 text-[11px] font-bold rounded-full mb-4 uppercase tracking-widest bg-red-600 text-white";
+            simBadge.innerText = "Risque Élevé : Contraction";
+            simTitle.className = "text-2xl font-bold text-red-900 mb-3 transition-colors duration-300";
+            simTitle.innerText = "Scénario A : Le Nationalisme Coercitif";
+            simDesc.innerText = "L'application d'une taxe prohibitive (ou interdiction) sans résolution préalable du déficit énergétique mène à l'arrêt des opérations (force majeure). Le marché mondial, paniqué, accélère sa transition vers les batteries sans cobalt (chimie LFP). L'industrie s'effondre à l'horizon 2035[cite: 11].";
+            simIcon.className = "fa-solid fa-skull-crossbones absolute -bottom-10 -right-10 text-9xl opacity-5 transition-all duration-500 text-red-900";
+            
+            kpiRev.innerHTML = '<span class="text-red-600 font-bold"><i class="fa-solid fa-arrow-trend-down mr-1"></i> Effondrement</span><br><span class="text-xs text-slate-500">Perte de la redevance sur les volumes bruts.</span>';
+            kpiInfra.innerHTML = '<span class="text-red-600 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Déficit Maintenu</span><br><span class="text-xs text-slate-500">Le réseau de la SNEL sature, blocage des usines.</span>';
+            kpiIde.innerHTML = '<span class="text-red-600 font-bold"><i class="fa-solid fa-person-running mr-1"></i> Fuite des Capitaux</span><br><span class="text-xs text-slate-500">Le risque pays (juridique) fait fuir les investisseurs.</span>';
+            kpiValue.innerHTML = '<span class="text-red-600 font-bold"><i class="fa-solid fa-lock mr-1"></i> Exclusion</span><br><span class="text-xs text-slate-500">Contournement technologique mondial de la RDC.</span>';
+            
+        } else if (tax <= 15 && diplo < 60) {
+            // SCÉNARIO B : STATU QUO EXTRACTIVISTE - Cite: 11
+            outPanel.className = "h-full rounded-2xl p-8 border-2 transition-all duration-500 relative overflow-hidden bg-slate-100 border-slate-300";
+            simBadge.className = "inline-block px-3 py-1 text-[11px] font-bold rounded-full mb-4 uppercase tracking-widest bg-slate-500 text-white";
+            simBadge.innerText = "Statu Quo Faible";
+            simTitle.className = "text-2xl font-bold text-slate-800 mb-3 transition-colors duration-300";
+            simTitle.innerText = "Scénario B : L'Extractivisme de Rente";
+            simDesc.innerText = "La faiblesse des incitations fiscales entérine le rôle de la RDC comme simple pourvoyeur de minerais bruts. Bien que l'État perçoive des recettes immédiates (redevance de 10%), l'opportunité de capter les milliers de milliards de dollars de l'industrie des batteries d'ici 2035 est définitivement perdue au profit de l'Asie[cite: 11].";
+            simIcon.className = "fa-solid fa-cart-flatbed absolute -bottom-10 -right-10 text-9xl opacity-5 transition-all duration-500 text-slate-900";
+            
+            kpiRev.innerHTML = '<span class="text-slate-600 font-bold"><i class="fa-solid fa-equals mr-1"></i> Stagnation (Court terme)</span><br><span class="text-xs text-slate-500">Rente maintenue mais vulnérable aux cycles des prix.</span>';
+            kpiInfra.innerHTML = '<span class="text-slate-600 font-bold"><i class="fa-solid fa-plug-circle-xmark mr-1"></i> Dépendance</span><br><span class="text-xs text-slate-500">Imports massifs d\'électricité depuis la Zambie.</span>';
+            kpiIde.innerHTML = '<span class="text-slate-600 font-bold"><i class="fa-solid fa-box-open mr-1"></i> Extractifs Uniquement</span><br><span class="text-xs text-slate-500">Les IDE restent confinés à l\'ouverture de mines.</span>';
+            kpiValue.innerHTML = '<span class="text-slate-600 font-bold"><i class="fa-solid fa-link-slash mr-1"></i> Amont Brut</span><br><span class="text-xs text-slate-500">Exportation d\'hydroxyde (contenant 65-80% de déchets).</span>';
+            
+        } else if (tax >= 10 && tax <= 30 && fomin >= 60 && diplo >= 60) {
+            // SCÉNARIO C : INDUSTRIALISATION INCITATIVE (Recommandé) - Cite: 11, 12, 13
+            outPanel.className = "h-full rounded-2xl p-8 border-2 transition-all duration-500 relative overflow-hidden bg-emerald-50 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]";
+            simBadge.className = "inline-block px-3 py-1 text-[11px] font-bold rounded-full mb-4 uppercase tracking-widest bg-emerald-600 text-white";
+            simBadge.innerText = "Stratégie Optimale (Recommandée)";
+            simTitle.className = "text-2xl font-bold text-emerald-900 mb-3 transition-colors duration-300";
+            simTitle.innerText = "Scénario C : L'Industrialisation Incitative et Intégrée";
+            simDesc.innerText = "L'architecture combinée (Taxes progressives + FOMIN réinvesti + ZES active) propulse la RDC. L'accès garanti à l'énergie (PPP SNEL) permet d'exploiter le CAPEX minime du pays (39M$). L'alliance avec la DFC américaine assure des débouchés occidentaux décarbonés (hydroélectricité) contournant le monopole de raffinage chinois[cite: 11, 12, 13].";
+            simIcon.className = "fa-solid fa-microchip absolute -bottom-10 -right-10 text-9xl opacity-5 transition-all duration-500 text-emerald-900";
+            
+            kpiRev.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Croissance Majore</span><br><span class="text-xs text-slate-500">Capture des marges de conversion chimiques locales.</span>';
+            kpiInfra.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-tower-observation mr-1"></i> Autonomie (1500+ MW)</span><br><span class="text-xs text-slate-500">Barrages financés par les fonds garantis du FOMIN.</span>';
+            kpiIde.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-handshake-angle mr-1"></i> De-Risking Actif</span><br><span class="text-xs text-slate-500">Afflux massif des constructeurs automobiles occidentaux.</span>';
+            kpiValue.innerHTML = '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-flask mr-1"></i> Chimie Fine (pCAM)</span><br><span class="text-xs text-slate-500">Exportation de précurseurs de cathodes via Lobito.</span>';
+            
+        } else {
+            // SCÉNARIO HYBRIDE (Transitionnel)
+            outPanel.className = "h-full rounded-2xl p-8 border-2 transition-all duration-500 relative overflow-hidden bg-blue-50 border-blue-300";
+            simBadge.className = "inline-block px-3 py-1 text-[11px] font-bold rounded-full mb-4 uppercase tracking-widest bg-blue-500 text-white";
+            simBadge.innerText = "Scénario de Transition";
+            simTitle.className = "text-2xl font-bold text-blue-900 mb-3 transition-colors duration-300";
+            simTitle.innerText = "Scénario Hybride : Déséquilibres de Croissance";
+            simDesc.innerText = "Les politiques publiques manquent d'alignement. La volonté de taxation n'est pas entièrement soutenue par l'infrastructure ou l'ouverture géopolitique, créant des frictions logistiques. L'industrie progresse vers la pyrométallurgie (cuivre blister) mais échoue à franchir le cap de la chimie fine (sulfate/pCAM) par manque de fluidité institutionnelle.";
+            simIcon.className = "fa-solid fa-code-compare absolute -bottom-10 -right-10 text-9xl opacity-5 transition-all duration-500 text-blue-900";
+            
+            kpiRev.innerHTML = '<span class="text-blue-600 font-bold"><i class="fa-solid fa-arrow-right mr-1"></i> Hausse Modérée</span><br><span class="text-xs text-slate-500">Tensions sur la trésorerie des opérateurs compensées par le volume.</span>';
+            kpiInfra.innerHTML = '<span class="text-blue-600 font-bold"><i class="fa-solid fa-battery-half mr-1"></i> Électrification Partielle</span><br><span class="text-xs text-slate-500">Dépendance aux micro-réseaux privés onéreux (ex: générateurs).</span>';
+            kpiIde.innerHTML = '<span class="text-blue-600 font-bold"><i class="fa-solid fa-globe mr-1"></i> Hégémonie Asiatique</span><br><span class="text-xs text-slate-500">Le manque de diplomatie ESG maintient l\'influence chinoise.</span>';
+            kpiValue.innerHTML = '<span class="text-blue-600 font-bold"><i class="fa-solid fa-fire-burner mr-1"></i> Pyrométallurgie</span><br><span class="text-xs text-slate-500">Production de concentrés et anodes, pas de chimie de batterie.</span>';
+        }
+    }
+
+    // Attach listeners and initialize
+    sTax.addEventListener('input', updateSimulation);
+    sFomin.addEventListener('input', updateSimulation);
+    sDiplo.addEventListener('input', updateSimulation);
+    
+    // Initial run
+    updateSimulation();
+</script>
+
+</body>
+</html>
